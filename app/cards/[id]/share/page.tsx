@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useState } from 'react';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import { QRCodeSVG } from 'qrcode.react';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { api } from '@/lib/api';
 import { API_KEYS, ENDPOINTS } from '@/lib/constants';
@@ -19,7 +20,6 @@ interface ShareToken {
 }
 
 export default function SharePage() {
-  const router = useRouter();
   const params = useParams();
   const cardId = params.id as string;
 
@@ -28,6 +28,7 @@ export default function SharePage() {
   const [tokenId, setTokenId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [deactivating, setDeactivating] = useState(false);
+  const [showQrModal, setShowQrModal] = useState(false);
   const [error, setError] = useState('');
 
   const handleCreateToken = async () => {
@@ -165,6 +166,19 @@ export default function SharePage() {
               >
                 링크 복사
               </button>
+              <button
+                type="button"
+                onClick={() => setShowQrModal(true)}
+                style={{
+                  padding: '0.5rem 1rem',
+                  marginRight: '0.5rem',
+                  border: '1px solid #ccc',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                }}
+              >
+                QR 보기
+              </button>
               {tokenId && (
                 <button
                   type="button"
@@ -183,6 +197,52 @@ export default function SharePage() {
             </div>
           )}
         </div>
+
+        {showQrModal && shareLink && (
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="QR 코드"
+            style={{
+              position: 'fixed',
+              inset: 0,
+              backgroundColor: 'rgba(0,0,0,0.5)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 1000,
+            }}
+            onClick={() => setShowQrModal(false)}
+          >
+            <div
+              style={{
+                backgroundColor: 'white',
+                padding: '1.5rem',
+                borderRadius: '8px',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '1rem',
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={{ fontWeight: 'bold' }}>공유 링크 QR 코드</div>
+              <QRCodeSVG value={shareLink} size={200} level="M" />
+              <button
+                type="button"
+                onClick={() => setShowQrModal(false)}
+                style={{
+                  padding: '0.5rem 1rem',
+                  border: '1px solid #ccc',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                }}
+              >
+                닫기
+              </button>
+            </div>
+          </div>
+        )}
 
         <div style={{ marginTop: '2rem', padding: '1rem', backgroundColor: '#f9f9f9', borderRadius: '4px' }}>
           <div style={{ fontSize: '0.875rem', color: '#666' }}>

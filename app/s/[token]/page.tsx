@@ -15,6 +15,7 @@ interface SharedCard {
   card_id: string;
   name: string;
   company?: string;
+  position?: string;
   email?: string;
   phone?: string;
   bio?: string;
@@ -23,7 +24,7 @@ interface SharedCard {
 /** 백엔드 raw 응답: flat 또는 { card_id, data?: { name, ... } } */
 type SharedCardRaw =
   | SharedCard
-  | { card_id: string; data?: { name?: string; company?: string; email?: string; phone?: string; bio?: string } };
+  | { card_id: string; data?: { name?: string; company?: string; position?: string; email?: string; phone?: string; bio?: string } };
 
 function flattenSharedCard(res: SharedCardRaw): SharedCard {
   if ('data' in res && res.data && typeof res.data === 'object') {
@@ -32,6 +33,7 @@ function flattenSharedCard(res: SharedCardRaw): SharedCard {
       card_id: res.card_id,
       name: d.name ?? '',
       company: d.company,
+      position: d.position,
       email: d.email,
       phone: d.phone,
       bio: d.bio,
@@ -42,6 +44,7 @@ function flattenSharedCard(res: SharedCardRaw): SharedCard {
     card_id: flat.card_id,
     name: flat.name ?? '',
     company: flat.company,
+    position: flat.position,
     email: flat.email,
     phone: flat.phone,
     bio: flat.bio,
@@ -57,6 +60,7 @@ export default function SharedCardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [bioExpanded, setBioExpanded] = useState(false);
 
   useEffect(() => {
     fetchSharedCard();
@@ -122,31 +126,86 @@ export default function SharedCardPage() {
 
   return (
     <div style={{ padding: '2rem', maxWidth: '600px', margin: '0 auto' }}>
-      <h1 style={{ textAlign: 'center', marginBottom: '2rem' }}>공유 명함</h1>
+      <p style={{ textAlign: 'center', marginBottom: '1rem', color: '#666', fontSize: '0.875rem' }}>공유 명함</p>
 
       <div
         style={{
-          padding: '2rem',
-          border: '1px solid #ddd',
-          borderRadius: '8px',
-          backgroundColor: '#fafafa',
+          backgroundColor: '#fff',
+          border: '1px solid #e5e5e5',
+          borderRadius: '12px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+          overflow: 'hidden',
         }}
       >
-        <h2 style={{ marginBottom: '1.5rem' }}>{card.name || '이름 없음'}</h2>
-
-        <div style={{ lineHeight: '1.8' }}>
-          {card.company && <div><strong>회사:</strong> {card.company}</div>}
-          {card.email && <div><strong>이메일:</strong> {card.email}</div>}
-          {card.phone && <div><strong>전화번호:</strong> {card.phone}</div>}
+        <div style={{ padding: '1.5rem' }}>
+          <h1 style={{ margin: '0 0 0.25rem 0', fontSize: '1.5rem' }}>{card.name || '이름 없음'}</h1>
+          {(card.company || card.position) && (
+            <p style={{ margin: 0, color: '#555', fontSize: '0.9375rem' }}>
+              {[card.company, card.position].filter(Boolean).join(' · ')}
+            </p>
+          )}
+          <div style={{ marginTop: '1.5rem', display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+            {card.phone && (
+              <a
+                href={`tel:${card.phone.replace(/\s/g, '')}`}
+                style={{
+                  padding: '0.5rem 1rem',
+                  backgroundColor: '#f0f0f0',
+                  borderRadius: '6px',
+                  textDecoration: 'none',
+                  color: '#333',
+                  fontSize: '0.875rem',
+                }}
+              >
+                📞 {card.phone}
+              </a>
+            )}
+            {card.email && (
+              <a
+                href={`mailto:${card.email}`}
+                style={{
+                  padding: '0.5rem 1rem',
+                  backgroundColor: '#f0f0f0',
+                  borderRadius: '6px',
+                  textDecoration: 'none',
+                  color: '#333',
+                  fontSize: '0.875rem',
+                }}
+              >
+                ✉️ 이메일 보내기
+              </a>
+            )}
+          </div>
           {card.bio && (
-            <div style={{ marginTop: '1rem' }}>
-              <strong>소개:</strong>
-              <div style={{ marginTop: '0.5rem' }}>{card.bio}</div>
-            </div>
+            <section style={{ marginTop: '1.5rem' }}>
+              <h2 style={{ margin: '0 0 0.5rem 0', fontSize: '1rem', fontWeight: 600, color: '#333' }}>소개</h2>
+              <div style={{ lineHeight: 1.6, color: '#444', fontSize: '0.9375rem' }}>
+                {card.bio.length > 120 && !bioExpanded
+                  ? `${card.bio.slice(0, 120)}...`
+                  : card.bio}
+              </div>
+              {card.bio.length > 120 && (
+                <button
+                  type="button"
+                  onClick={() => setBioExpanded(!bioExpanded)}
+                  style={{
+                    marginTop: '0.5rem',
+                    padding: 0,
+                    border: 'none',
+                    background: 'none',
+                    color: '#0070f3',
+                    fontSize: '0.875rem',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {bioExpanded ? '접기' : '더보기'}
+                </button>
+              )}
+            </section>
           )}
         </div>
 
-        <div style={{ marginTop: '2rem', textAlign: 'center' }}>
+        <div style={{ padding: '1rem 1.5rem', borderTop: '1px solid #eee', textAlign: 'center' }}>
           <button
             onClick={handleCollect}
             disabled={saving}
@@ -155,7 +214,7 @@ export default function SharedCardPage() {
               backgroundColor: '#0070f3',
               color: 'white',
               border: 'none',
-              borderRadius: '4px',
+              borderRadius: '6px',
               cursor: saving ? 'not-allowed' : 'pointer',
               fontSize: '1rem',
             }}

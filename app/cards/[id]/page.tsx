@@ -15,6 +15,7 @@ interface Card {
   id: string;
   name: string;
   company?: string;
+  position?: string;
   email?: string;
   phone?: string;
   bio?: string;
@@ -34,6 +35,7 @@ export default function CardDetailPage() {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState('');
+  const [bioExpanded, setBioExpanded] = useState(false);
 
   useEffect(() => {
     fetchCard();
@@ -136,6 +138,17 @@ export default function CardDetailPage() {
               </div>
               <div style={{ marginBottom: '1rem' }}>
                 <label>
+                  직함
+                  <input
+                    type="text"
+                    value={formData.position || ''}
+                    onChange={(e) => setFormData({ ...formData, position: e.target.value })}
+                    style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }}
+                  />
+                </label>
+              </div>
+              <div style={{ marginBottom: '1rem' }}>
+                <label>
                   이메일
                   <input
                     type="email"
@@ -199,33 +212,29 @@ export default function CardDetailPage() {
             </div>
           </div>
         ) : (
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '2rem' }}>
-              <h1>{card?.name || '이름 없음'}</h1>
+          <div
+            style={{
+              backgroundColor: '#fff',
+              border: '1px solid #e5e5e5',
+              borderRadius: '12px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+              overflow: 'hidden',
+            }}
+          >
+            <div style={{ padding: '1rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #eee' }}>
+              <span style={{ color: '#666', fontSize: '0.875rem' }}>명함</span>
               <div style={{ display: 'flex', gap: '0.5rem' }}>
                 <button
                   onClick={() => setIsEditing(true)}
                   style={{
                     padding: '0.5rem 1rem',
                     border: '1px solid #ccc',
-                    borderRadius: '4px',
+                    borderRadius: '6px',
                     cursor: 'pointer',
+                    background: '#fff',
                   }}
                 >
                   수정
-                </button>
-                <button
-                  type="button"
-                  onClick={handleDelete}
-                  disabled={deleting}
-                  style={{
-                    padding: '0.5rem 1rem',
-                    border: '1px solid #ccc',
-                    borderRadius: '4px',
-                    cursor: deleting ? 'not-allowed' : 'pointer',
-                  }}
-                >
-                  {deleting ? '삭제 중...' : '삭제'}
                 </button>
                 <Link
                   href={`/cards/${cardId}/share`}
@@ -233,35 +242,113 @@ export default function CardDetailPage() {
                     padding: '0.5rem 1rem',
                     backgroundColor: '#0070f3',
                     color: 'white',
-                    borderRadius: '4px',
+                    borderRadius: '6px',
                     display: 'inline-block',
+                    textDecoration: 'none',
                   }}
                 >
                   공유하기
                 </Link>
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    marginLeft: '0.5rem',
+                    border: '1px solid #dc3545',
+                    backgroundColor: 'transparent',
+                    borderRadius: '6px',
+                    cursor: deleting ? 'not-allowed' : 'pointer',
+                    color: '#dc3545',
+                  }}
+                >
+                  {deleting ? '삭제 중...' : '삭제'}
+                </button>
               </div>
             </div>
 
             {card?.image_url && (
-              <div style={{ marginBottom: '1.5rem' }}>
+              <div style={{ width: '100%', aspectRatio: '16/9', backgroundColor: '#f5f5f5', overflow: 'hidden' }}>
                 <img
                   src={card.image_url}
                   alt={`${card.name} 명함`}
                   crossOrigin="anonymous"
                   referrerPolicy="no-referrer"
-                  style={{ maxWidth: '100%', height: 'auto', borderRadius: '8px', display: 'block' }}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                   onError={(e) => {
                     (e.target as HTMLImageElement).style.display = 'none';
                   }}
                 />
               </div>
             )}
-            <div style={{ lineHeight: '1.8' }}>
-              {card?.company && <div><strong>회사:</strong> {card.company}</div>}
-              {card?.email && <div><strong>이메일:</strong> {card.email}</div>}
-              {card?.phone && <div><strong>전화번호:</strong> {card.phone}</div>}
-              {card?.bio && <div style={{ marginTop: '1rem' }}><strong>소개:</strong><br />{card.bio}</div>}
-              <div style={{ marginTop: '1rem', color: '#666', fontSize: '0.875rem' }}>
+            <div style={{ padding: '1.5rem' }}>
+              <h1 style={{ margin: '0 0 0.25rem 0', fontSize: '1.5rem' }}>{card?.name || '이름 없음'}</h1>
+              {(card?.company || card?.position) && (
+                <p style={{ margin: 0, color: '#555', fontSize: '0.9375rem' }}>
+                  {[card?.company, card?.position].filter(Boolean).join(' · ')}
+                </p>
+              )}
+              <div style={{ marginTop: '1.5rem', display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                {card?.phone && (
+                  <a
+                    href={`tel:${card.phone.replace(/\s/g, '')}`}
+                    style={{
+                      padding: '0.5rem 1rem',
+                      backgroundColor: '#f0f0f0',
+                      borderRadius: '6px',
+                      textDecoration: 'none',
+                      color: '#333',
+                      fontSize: '0.875rem',
+                    }}
+                  >
+                    📞 {card.phone}
+                  </a>
+                )}
+                {card?.email && (
+                  <a
+                    href={`mailto:${card.email}`}
+                    style={{
+                      padding: '0.5rem 1rem',
+                      backgroundColor: '#f0f0f0',
+                      borderRadius: '6px',
+                      textDecoration: 'none',
+                      color: '#333',
+                      fontSize: '0.875rem',
+                    }}
+                  >
+                    ✉️ 이메일 보내기
+                  </a>
+                )}
+              </div>
+              {card?.bio && (
+                <section style={{ marginTop: '1.5rem' }}>
+                  <h2 style={{ margin: '0 0 0.5rem 0', fontSize: '1rem', fontWeight: 600, color: '#333' }}>소개</h2>
+                  <div style={{ lineHeight: 1.6, color: '#444', fontSize: '0.9375rem' }}>
+                    {card.bio.length > 120 && !bioExpanded
+                      ? `${card.bio.slice(0, 120)}...`
+                      : card.bio}
+                  </div>
+                  {card.bio.length > 120 && (
+                    <button
+                      type="button"
+                      onClick={() => setBioExpanded(!bioExpanded)}
+                      style={{
+                        marginTop: '0.5rem',
+                        padding: 0,
+                        border: 'none',
+                        background: 'none',
+                        color: '#0070f3',
+                        fontSize: '0.875rem',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {bioExpanded ? '접기' : '더보기'}
+                    </button>
+                  )}
+                </section>
+              )}
+              <div style={{ marginTop: '1.5rem', color: '#888', fontSize: '0.8125rem' }}>
                 수정일: {new Date(card?.updated_at || '').toLocaleString('ko-KR')}
               </div>
             </div>
