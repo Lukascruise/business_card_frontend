@@ -5,7 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { api } from '@/lib/api';
-import { ENDPOINTS } from '@/lib/constants';
+import { API_KEYS, ENDPOINTS } from '@/lib/constants';
 
 /**
  * 명함 공유 설정 페이지
@@ -25,7 +25,9 @@ export default function SharePage() {
 
   const [expiresAt, setExpiresAt] = useState('1'); // 1시간, 1일, 1주일
   const [shareLink, setShareLink] = useState('');
+  const [tokenId, setTokenId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [deactivating, setDeactivating] = useState(false);
   const [error, setError] = useState('');
 
   const handleCreateToken = async () => {
@@ -51,13 +53,15 @@ export default function SharePage() {
           expiresDate.setHours(now.getHours() + 1);
       }
 
-      const response = await api.post<{ share_token: string; expires_at: string }>(
-        ENDPOINTS.CARD_TOKENS(cardId),
-        { expires_at: expiresDate.toISOString() }
-      );
+      const response = await api.post<{
+        [API_KEYS.SHARE_TOKEN]: string;
+        [API_KEYS.EXPIRES_AT]: string;
+        [API_KEYS.TOKEN_ID]?: string;
+      }>(ENDPOINTS.CARD_TOKENS(cardId), { expires_at: expiresDate.toISOString() });
 
       const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-      setShareLink(`${baseUrl}/s/${response.share_token}`);
+      setShareLink(`${baseUrl}/s/${response[API_KEYS.SHARE_TOKEN]}`);
+      setTokenId(response[API_KEYS.TOKEN_ID] ?? null);
     } catch (err: any) {
       setError(err.message || '공유 링크 생성에 실패했습니다.');
     } finally {
@@ -69,6 +73,22 @@ export default function SharePage() {
     if (shareLink) {
       navigator.clipboard.writeText(shareLink);
       alert('링크가 복사되었습니다.');
+    }
+  };
+
+  const handleDeactivate = async () => {
+    if (!tokenId) return;
+    if (!confirm('이 공유 링크를 지금 무효화하시겠습니까?')) return;
+    setDeactivating(true);
+    setError('');
+    try {
+      await api.delete(ENDPOINTS.TOKEN_DEACTIVATE(tokenId));
+      setShareLink('');
+      setTokenId(null);
+    } catch (err: any) {
+      setError(err.message || '공유 링크 무효화에 실패했습니다.');
+    } finally {
+      setDeactivating(false);
     }
   };
 
@@ -137,6 +157,7 @@ export default function SharePage() {
                 onClick={handleCopyLink}
                 style={{
                   padding: '0.5rem 1rem',
+                  marginRight: '0.5rem',
                   border: '1px solid #ccc',
                   borderRadius: '4px',
                   cursor: 'pointer',
@@ -144,6 +165,21 @@ export default function SharePage() {
               >
                 링크 복사
               </button>
+              {tokenId && (
+                <button
+                  type="button"
+                  onClick={handleDeactivate}
+                  disabled={deactivating}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    border: '1px solid #ccc',
+                    borderRadius: '4px',
+                    cursor: deactivating ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  {deactivating ? '무효화 중...' : '링크 무효화'}
+                </button>
+              )}
             </div>
           )}
         </div>

@@ -9,6 +9,7 @@ import { API_KEYS, ENDPOINTS } from '@/lib/constants';
 /**
  * 공유 링크 조회 페이지 (비로그인 사용자 접근 가능)
  * API: GET /v1/s/:token, POST /v1/collections
+ * 백엔드가 flat 또는 nested(data 안에 필드) 형태로 올 수 있으므로 flatten 후 사용
  */
 interface SharedCard {
   card_id: string;
@@ -17,6 +18,34 @@ interface SharedCard {
   email?: string;
   phone?: string;
   bio?: string;
+}
+
+/** 백엔드 raw 응답: flat 또는 { card_id, data?: { name, ... } } */
+type SharedCardRaw =
+  | SharedCard
+  | { card_id: string; data?: { name?: string; company?: string; email?: string; phone?: string; bio?: string } };
+
+function flattenSharedCard(res: SharedCardRaw): SharedCard {
+  if ('data' in res && res.data && typeof res.data === 'object') {
+    const d = res.data;
+    return {
+      card_id: res.card_id,
+      name: d.name ?? '',
+      company: d.company,
+      email: d.email,
+      phone: d.phone,
+      bio: d.bio,
+    };
+  }
+  const flat = res as SharedCard;
+  return {
+    card_id: flat.card_id,
+    name: flat.name ?? '',
+    company: flat.company,
+    email: flat.email,
+    phone: flat.phone,
+    bio: flat.bio,
+  };
 }
 
 export default function SharedCardPage() {
@@ -35,11 +64,11 @@ export default function SharedCardPage() {
 
   const fetchSharedCard = async () => {
     try {
-      const data = await api.get<SharedCard>(
+      const res = await api.get<SharedCardRaw>(
         ENDPOINTS.SHARED_CARD(token),
         { requireAuth: false }
       );
-      setCard(data);
+      setCard(flattenSharedCard(res));
     } catch (err: any) {
       setError(err.message || '명함을 불러오는데 실패했습니다.');
     } finally {

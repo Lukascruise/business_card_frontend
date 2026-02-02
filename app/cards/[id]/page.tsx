@@ -32,6 +32,7 @@ export default function CardDetailPage() {
   const [formData, setFormData] = useState<Partial<Card>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -62,6 +63,20 @@ export default function CardDetailPage() {
       setError(err.message || '명함 수정에 실패했습니다.');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!confirm('이 명함을 삭제하시겠습니까?')) return;
+    setDeleting(true);
+    setError('');
+    try {
+      await api.delete(ENDPOINTS.CARD_DETAIL(cardId));
+      router.push('/cards');
+    } catch (err: any) {
+      setError(err.message || '명함 삭제에 실패했습니다.');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -199,6 +214,19 @@ export default function CardDetailPage() {
                 >
                   수정
                 </button>
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    border: '1px solid #ccc',
+                    borderRadius: '4px',
+                    cursor: deleting ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  {deleting ? '삭제 중...' : '삭제'}
+                </button>
                 <Link
                   href={`/cards/${cardId}/share`}
                   style={{
@@ -219,9 +247,12 @@ export default function CardDetailPage() {
                 <img
                   src={card.image_url}
                   alt={`${card.name} 명함`}
-                  style={{ maxWidth: '100%', height: 'auto', borderRadius: '8px', display: 'block' }}
                   crossOrigin="anonymous"
                   referrerPolicy="no-referrer"
+                  style={{ maxWidth: '100%', height: 'auto', borderRadius: '8px', display: 'block' }}
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
                 />
               </div>
             )}
