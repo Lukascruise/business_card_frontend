@@ -1,7 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import { auth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { ENDPOINTS } from '@/lib/constants';
 
@@ -18,6 +20,7 @@ interface Profile {
 }
 
 export default function ProfilePage() {
+  const router = useRouter();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<Partial<Profile>>({});
@@ -151,18 +154,34 @@ export default function ProfilePage() {
                 </div>
               )}
             </div>
-            <button
-              onClick={() => setIsEditing(true)}
-              style={{
-                marginTop: '2rem',
-                padding: '0.75rem 1.5rem',
-                border: '1px solid #ccc',
-                borderRadius: '4px',
-                cursor: 'pointer',
-              }}
-            >
-              수정
-            </button>
+            <div style={{ marginTop: '2rem', display: 'flex', gap: '0.5rem' }}>
+              <button
+                onClick={() => setIsEditing(true)}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  border: '1px solid #ccc',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                }}
+              >
+                수정
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  auth.removeToken();
+                  router.push('/auth/login');
+                }}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  border: '1px solid #ccc',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                }}
+              >
+                로그아웃
+              </button>
+            </div>
           </div>
         )}
       </div>

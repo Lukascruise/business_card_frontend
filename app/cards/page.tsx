@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import { auth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { ENDPOINTS } from '@/lib/constants';
 
@@ -38,6 +39,11 @@ export default function CardsPage() {
     }
   };
 
+  const handleLogout = () => {
+    auth.removeToken();
+    router.push('/auth/login');
+  };
+
   return (
     <ProtectedRoute>
       <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
@@ -68,6 +74,19 @@ export default function CardsPage() {
             >
               프로필
             </Link>
+            <button
+              type="button"
+              onClick={handleLogout}
+              style={{
+                marginLeft: '0.5rem',
+                padding: '0.75rem 1.5rem',
+                border: '1px solid #ccc',
+                borderRadius: '4px',
+                cursor: 'pointer',
+              }}
+            >
+              로그아웃
+            </button>
           </div>
         </div>
 
