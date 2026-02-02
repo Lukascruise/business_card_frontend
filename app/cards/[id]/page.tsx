@@ -18,6 +18,7 @@ interface Card {
   email?: string;
   phone?: string;
   bio?: string;
+  image_url?: string;
   updated_at: string;
 }
 
@@ -213,6 +214,17 @@ export default function CardDetailPage() {
               </div>
             </div>
 
+            {card?.image_url && (
+              <div style={{ marginBottom: '1.5rem' }}>
+                <img
+                  src={card.image_url}
+                  alt={`${card.name} 명함`}
+                  style={{ maxWidth: '100%', height: 'auto', borderRadius: '8px', display: 'block' }}
+                  crossOrigin="anonymous"
+                  referrerPolicy="no-referrer"
+                />
+              </div>
+            )}
             <div style={{ lineHeight: '1.8' }}>
               {card?.company && <div><strong>회사:</strong> {card.company}</div>}
               {card?.email && <div><strong>이메일:</strong> {card.email}</div>}
