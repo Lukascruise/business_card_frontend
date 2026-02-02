@@ -8,6 +8,7 @@ export const API_BASE_URL =
 /** API 엔드포인트 (DRF ViewSet은 trailing slash 사용) */
 export const ENDPOINTS = {
   AUTH_SIGNUP: '/v1/auth/signup',
+  AUTH_LOGIN: '/v1/auth/login',
   USER_PROFILE: '/v1/user/profile',
   CARDS: '/v1/cards/',
   CARD_DETAIL: (id: string) => `/v1/cards/${id}/`,

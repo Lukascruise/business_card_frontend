@@ -23,13 +23,10 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      // TODO: 로그인 API 엔드포인트 확인 필요
-      // 현재는 회원가입 API만 있음
-      // 임시로 회원가입 API 사용 (실제로는 로그인 API 필요)
       const response = await api.post<{
         [API_KEYS.ACCESS_TOKEN]: string;
         [API_KEYS.USER_ID]: string;
-      }>(ENDPOINTS.AUTH_SIGNUP, { email, password }, { requireAuth: false });
+      }>(ENDPOINTS.AUTH_LOGIN, { email, password }, { requireAuth: false });
 
       auth.setToken(response[API_KEYS.ACCESS_TOKEN]);
       router.push('/cards');
