@@ -6,9 +6,21 @@
 import { auth } from './auth';
 import { API_BASE_URL, AUTH_HEADER_PREFIX } from './constants';
 
+/** API 에러 응답 형식 (백엔드 success: false, error: { code, message, detail }) */
+export interface ApiErrorBody {
+  success: false;
+  error: {
+    code: string;
+    message: string;
+    detail: unknown;
+  };
+}
+
 export interface ApiError {
-  message: string;
   status: number;
+  message?: string;
+  code?: string;
+  detail?: unknown;
 }
 
 /**
@@ -55,10 +67,21 @@ async function apiRequest<T>(
   });
 
   if (!response.ok) {
-    const error: ApiError = {
-      message: `API Error: ${response.statusText}`,
-      status: response.status,
-    };
+    let message = `API Error: ${response.statusText}`;
+    let code: string | undefined;
+    let detail: unknown;
+    try {
+      const body = await response.json();
+      if (body && typeof body === 'object' && body.success === false && body.error && typeof body.error === 'object') {
+        const err = body.error as { message?: string; code?: string; detail?: unknown };
+        if (typeof err.message === 'string' && err.message.trim()) message = err.message;
+        if (typeof err.code === 'string') code = err.code;
+        if (err.detail !== undefined) detail = err.detail;
+      }
+    } catch {
+      // non-JSON or empty body
+    }
+    const error: ApiError = { status: response.status, message, code, detail };
     throw error;
   }
 

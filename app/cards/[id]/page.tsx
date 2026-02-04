@@ -6,6 +6,7 @@ import Link from 'next/link';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { api } from '@/lib/api';
 import { ENDPOINTS } from '@/lib/constants';
+import { getErrorMessage } from '@/lib/errors';
 import { formatPhoneDisplay, getPhoneDigits, normalizePhoneInput } from '@/lib/phone';
 
 /**
@@ -47,8 +48,8 @@ export default function CardDetailPage() {
       const data = await api.get<Card>(ENDPOINTS.CARD_DETAIL(cardId));
       setCard(data);
       setFormData(data);
-    } catch (err: any) {
-      setError(err.message || '명함을 불러오는데 실패했습니다.');
+    } catch (err) {
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -62,8 +63,8 @@ export default function CardDetailPage() {
       const updated = await api.put<Card>(ENDPOINTS.CARD_DETAIL(cardId), formData);
       setCard(updated);
       setIsEditing(false);
-    } catch (err: any) {
-      setError(err.message || '명함 수정에 실패했습니다.');
+    } catch (err) {
+      setError(getErrorMessage(err));
     } finally {
       setSaving(false);
     }
@@ -76,8 +77,8 @@ export default function CardDetailPage() {
     try {
       await api.delete(ENDPOINTS.CARD_DETAIL(cardId));
       router.push('/cards');
-    } catch (err: any) {
-      setError(err.message || '명함 삭제에 실패했습니다.');
+    } catch (err) {
+      setError(getErrorMessage(err));
     } finally {
       setDeleting(false);
     }

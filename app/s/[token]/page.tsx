@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { auth } from '@/lib/auth';
 import { API_KEYS, ENDPOINTS } from '@/lib/constants';
+import { getErrorMessage } from '@/lib/errors';
 import { formatPhoneDisplay, getPhoneDigits } from '@/lib/phone';
 
 /**
@@ -77,8 +78,8 @@ export default function SharedCardPage() {
         { requireAuth: false }
       );
       setCard(flattenSharedCard(res));
-    } catch (err: any) {
-      setError(err.message || '명함을 불러오는데 실패했습니다.');
+    } catch (err) {
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -100,8 +101,8 @@ export default function SharedCardPage() {
       });
       alert('명함이 수집되었습니다.');
       router.push('/collections');
-    } catch (err: any) {
-      alert(err.message || '명함 수집에 실패했습니다.');
+    } catch (err) {
+      alert(getErrorMessage(err));
     } finally {
       setSaving(false);
     }

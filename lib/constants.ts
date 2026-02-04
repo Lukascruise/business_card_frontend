@@ -15,6 +15,7 @@ export const ENDPOINTS = {
   CARD_TOKENS: (id: string) => `/v1/cards/${id}/tokens`,
   TOKEN_DEACTIVATE: (id: string) => `/v1/tokens/${id}/deactivate`,
   COLLECTIONS: '/v1/collections',
+  COLLECTION_DETAIL: (id: string) => `/v1/collections/${id}`,
   PRESIGNED_URL: '/v1/media/presigned-url',
   SHARED_CARD: (token: string) => `/v1/s/${token}`,
 } as const;

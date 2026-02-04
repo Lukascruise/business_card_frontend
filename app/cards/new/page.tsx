@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { api } from '@/lib/api';
 import { API_KEYS, ENDPOINTS } from '@/lib/constants';
+import { getErrorMessage } from '@/lib/errors';
 
 /**
  * 명함 생성 페이지
@@ -65,8 +66,8 @@ export default function NewCardPage() {
       });
 
       router.push(`/cards/${cardResponse.id}`);
-    } catch (err: any) {
-      setError(err.message || '명함 생성에 실패했습니다.');
+    } catch (err) {
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { auth } from '@/lib/auth';
 import { API_KEYS, ENDPOINTS } from '@/lib/constants';
+import { getErrorMessage } from '@/lib/errors';
 
 /**
  * 로그인 페이지
@@ -30,15 +31,15 @@ export default function LoginPage() {
 
       auth.setToken(response[API_KEYS.ACCESS_TOKEN]);
       router.push('/cards');
-    } catch (err: any) {
-      setError(err.message || '로그인에 실패했습니다.');
+    } catch (err) {
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '400px', margin: '0 auto' }}>
+    <div style={{ padding: '2rem', maxWidth: '400px', margin: 'auto' }}>
       <h1>로그인</h1>
       <form onSubmit={handleSubmit} style={{ marginTop: '1rem' }}>
         <div style={{ marginBottom: '1rem' }}>

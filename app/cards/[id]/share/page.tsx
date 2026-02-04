@@ -7,6 +7,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { api } from '@/lib/api';
 import { API_KEYS, ENDPOINTS } from '@/lib/constants';
+import { getErrorMessage } from '@/lib/errors';
 
 /**
  * 명함 공유 설정 페이지
@@ -63,8 +64,8 @@ export default function SharePage() {
       const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
       setShareLink(`${baseUrl}/s/${response[API_KEYS.SHARE_TOKEN]}`);
       setTokenId(response[API_KEYS.TOKEN_ID] ?? null);
-    } catch (err: any) {
-      setError(err.message || '공유 링크 생성에 실패했습니다.');
+    } catch (err) {
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -86,8 +87,8 @@ export default function SharePage() {
       await api.delete(ENDPOINTS.TOKEN_DEACTIVATE(tokenId));
       setShareLink('');
       setTokenId(null);
-    } catch (err: any) {
-      setError(err.message || '공유 링크 무효화에 실패했습니다.');
+    } catch (err) {
+      setError(getErrorMessage(err));
     } finally {
       setDeactivating(false);
     }

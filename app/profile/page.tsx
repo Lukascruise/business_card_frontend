@@ -6,6 +6,7 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import { auth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { ENDPOINTS } from '@/lib/constants';
+import { getErrorMessage } from '@/lib/errors';
 
 /**
  * 프로필 페이지
@@ -37,8 +38,8 @@ export default function ProfilePage() {
       const data = await api.get<Profile>(ENDPOINTS.USER_PROFILE);
       setProfile(data);
       setFormData(data);
-    } catch (err: any) {
-      setError(err.message || '프로필을 불러오는데 실패했습니다.');
+    } catch (err) {
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -52,8 +53,8 @@ export default function ProfilePage() {
       const updated = await api.put<Profile>(ENDPOINTS.USER_PROFILE, formData);
       setProfile(updated);
       setIsEditing(false);
-    } catch (err: any) {
-      setError(err.message || '프로필 수정에 실패했습니다.');
+    } catch (err) {
+      setError(getErrorMessage(err));
     } finally {
       setSaving(false);
     }
