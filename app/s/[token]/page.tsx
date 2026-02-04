@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { auth } from '@/lib/auth';
 import { API_KEYS, ENDPOINTS } from '@/lib/constants';
+import { formatPhoneDisplay, getPhoneDigits } from '@/lib/phone';
 
 /**
  * 공유 링크 조회 페이지 (비로그인 사용자 접근 가능)
@@ -19,12 +20,13 @@ interface SharedCard {
   email?: string;
   phone?: string;
   bio?: string;
+  image_url?: string;
 }
 
-/** 백엔드 raw 응답: flat 또는 { card_id, data?: { name, ... } } */
+/** 백엔드 raw 응답: flat 또는 { card_id, data?: { name, ... }, image_url } */
 type SharedCardRaw =
   | SharedCard
-  | { card_id: string; data?: { name?: string; company?: string; position?: string; email?: string; phone?: string; bio?: string } };
+  | { card_id: string; data?: { name?: string; company?: string; position?: string; email?: string; phone?: string; bio?: string }; image_url?: string };
 
 function flattenSharedCard(res: SharedCardRaw): SharedCard {
   if ('data' in res && res.data && typeof res.data === 'object') {
@@ -37,6 +39,7 @@ function flattenSharedCard(res: SharedCardRaw): SharedCard {
       email: d.email,
       phone: d.phone,
       bio: d.bio,
+      image_url: res.image_url,
     };
   }
   const flat = res as SharedCard;
@@ -48,6 +51,7 @@ function flattenSharedCard(res: SharedCardRaw): SharedCard {
     email: flat.email,
     phone: flat.phone,
     bio: flat.bio,
+    image_url: flat.image_url,
   };
 }
 
@@ -137,6 +141,18 @@ export default function SharedCardPage() {
           overflow: 'hidden',
         }}
       >
+        {card.image_url && (
+          <div style={{ width: '100%', aspectRatio: '16/9', backgroundColor: '#f5f5f5', overflow: 'hidden' }}>
+            <img
+              src={card.image_url}
+              alt={`${card.name} 명함`}
+              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = 'none';
+              }}
+            />
+          </div>
+        )}
         <div style={{ padding: '1.5rem' }}>
           <h1 style={{ margin: '0 0 0.25rem 0', fontSize: '1.5rem' }}>{card.name || '이름 없음'}</h1>
           {(card.company || card.position) && (
@@ -147,7 +163,7 @@ export default function SharedCardPage() {
           <div style={{ marginTop: '1.5rem', display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
             {card.phone && (
               <a
-                href={`tel:${card.phone.replace(/\s/g, '')}`}
+                href={`tel:${getPhoneDigits(card.phone)}`}
                 style={{
                   padding: '0.5rem 1rem',
                   backgroundColor: '#f0f0f0',
@@ -157,7 +173,7 @@ export default function SharedCardPage() {
                   fontSize: '0.875rem',
                 }}
               >
-                📞 {card.phone}
+                📞 {formatPhoneDisplay(card.phone)}
               </a>
             )}
             {card.email && (

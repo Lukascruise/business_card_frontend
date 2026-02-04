@@ -6,6 +6,7 @@ import Link from 'next/link';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { api } from '@/lib/api';
 import { ENDPOINTS } from '@/lib/constants';
+import { formatPhoneDisplay, getPhoneDigits, normalizePhoneInput } from '@/lib/phone';
 
 /**
  * 명함 상세/수정 페이지
@@ -163,8 +164,11 @@ export default function CardDetailPage() {
                   전화번호
                   <input
                     type="tel"
-                    value={formData.phone || ''}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    inputMode="numeric"
+                    autoComplete="tel"
+                    placeholder="010-1234-5678"
+                    value={formatPhoneDisplay(formData.phone || '')}
+                    onChange={(e) => setFormData({ ...formData, phone: normalizePhoneInput(e.target.value) })}
                     style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }}
                   />
                 </label>
@@ -292,7 +296,7 @@ export default function CardDetailPage() {
               <div style={{ marginTop: '1.5rem', display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                 {card?.phone && (
                   <a
-                    href={`tel:${card.phone.replace(/\s/g, '')}`}
+                    href={`tel:${getPhoneDigits(card.phone)}`}
                     style={{
                       padding: '0.5rem 1rem',
                       backgroundColor: '#f0f0f0',
@@ -302,7 +306,7 @@ export default function CardDetailPage() {
                       fontSize: '0.875rem',
                     }}
                   >
-                    📞 {card.phone}
+                    📞 {formatPhoneDisplay(card.phone)}
                   </a>
                 )}
                 {card?.email && (
